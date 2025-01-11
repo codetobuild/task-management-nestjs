@@ -10,32 +10,35 @@ import {
 } from "@nestjs/common";
 import { CreateTaskDto } from "src/common/dtos/createTask.dto";
 import { ResponseInterceptor } from "src/common/interceptors/response.interceptor";
+import { TaskService } from "./task.service";
 
 @Controller("tasks")
 @UseInterceptors(ResponseInterceptor)
 export class TaskController {
+  constructor(private readonly taskService: TaskService) {}
+
   @Get()
   async getAllTasks() {
-    return "tasks";
+    return await this.taskService.getAllTasks();
   }
 
   @Get(":id")
   async getTaskById(@Param("id") id: string) {
-    return "task by id";
+    return await this.taskService.getTaskById(id);
   }
 
   @Post()
   async createTask(@Body() createTaskDto: CreateTaskDto) {
-    return "task created";
+    return await this.taskService.createTask(createTaskDto);
   }
 
   @Put(":id")
   async updateTask(@Param("id") id: string, @Body() updateTaskDto: any) {
-    return "task updated";
+    return await this.taskService.updateTaskById(id, updateTaskDto);
   }
 
   @Delete(":id")
   async deleteTask(@Param("id") id: string) {
-    return "task deleted";
+    return await this.taskService.deleteTaskById(id);
   }
 }
