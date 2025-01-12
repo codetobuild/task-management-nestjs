@@ -9,11 +9,13 @@ import { CreateTaskDto } from "src/common/dtos/createTask.dto";
 import { UpdateTaskDto } from "src/common/dtos/update-task.dto";
 import { MYSQL_DATABASE_CONNECTION } from "src/database/database.providers";
 import { Task } from "src/database/models/task.model";
+import { RedisService } from "src/redis/redis.service";
 
 @Injectable()
 export class TaskService {
   constructor(
     @Inject(MYSQL_DATABASE_CONNECTION) private sequelize: Sequelize,
+    private readonly redisService: RedisService,
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto) {
@@ -47,18 +49,20 @@ export class TaskService {
   }
 
   async getTaskById(id: string) {
-    const transaction = await this.sequelize.transaction();
+    const cachedTask = await this.redisService.get(`task:${id}`);
+    if (cachedTask) {
+      return cachedTask;
+    }
 
     try {
       const task = await Task.findByPk(id);
       if (!task) {
         throw new NotFoundException("Task not found");
       }
-      await transaction.commit();
+      await this.redisService.set(`task:${task.id}`, task, 60);
       return task;
     } catch (err) {
       console.error(err);
-      await transaction.rollback();
       if (err instanceof NotFoundException) {
         throw err;
       }
@@ -101,7 +105,7 @@ export class TaskService {
 
       await task.destroy({ transaction });
       await transaction.commit();
-
+      await this.redisService.del(`task:${id}`);
       return "Task deleted successfully";
     } catch (error) {
       await transaction.rollback();
