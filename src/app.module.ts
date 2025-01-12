@@ -8,6 +8,7 @@ import { DatabaseModule } from "./database/database.module";
 import { WinstonModule } from "nest-winston";
 import { winstonLoggerConfig } from "./config/winston-logger.config";
 import { RedisModule } from "./redis/redis.module";
+import { RabbitMQModule } from "./broker/rabbitmq.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RedisModule } from "./redis/redis.module";
     NotificationModule,
     DatabaseModule,
     RedisModule,
+    RabbitMQModule,
   ],
   controllers: [AppController],
   providers: [AppService],
