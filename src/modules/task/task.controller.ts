@@ -6,13 +6,16 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { CreateTaskDto } from "src/common/dtos/createTask.dto";
 import { ResponseInterceptor } from "src/common/interceptors/response.interceptor";
 import { TaskService } from "./task.service";
+import { CustomThrottlerGuard } from "src/common/guards/throttler.guard";
 
 @Controller("tasks")
+@UseGuards(CustomThrottlerGuard)
 @UseInterceptors(ResponseInterceptor)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
