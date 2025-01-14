@@ -1,11 +1,20 @@
 const apps = [
   {
-    name: "task-management-app",
-    script: "dist/main.js",
-    node_args: "--max-old-space-size=338",
-    args: ["--color"],
-    watch: true,
+    // Basic Application Configuration
+    name: "task-management-app", // Name of your application in PM2
+    script: "dist/main.js", // Path to your compiled NestJS application
+
+    // Memory Management
+    instances: -1,
+    exec_mode: "cluster",
+    node_args: "--max-old-space-size=338", // Limits Node.js heap size to 338MB
+    max_memory_restart: "423M", // Restarts app if memory exceeds 423MB
+
+    // Process Arguments & Watch Settings
+    args: ["--color"], // Enables colored output in logs
+    watch: true, // Enables file watching for auto-restart
     ignore_watch: [
+      // Files/directories to ignore when watching
       ".git",
       "tests",
       "pids",
@@ -15,24 +24,24 @@ const apps = [
       ".git/*",
       "public",
     ],
-    merge_logs: true,
-    cwd: ".",
-    error_file: "./logs/task-management-app.log",
-    out_file: "./logs/task-management-app.log",
-    pid_file: "./pids/task-management-app.pid",
-    min_uptime: "30s",
-    max_restarts: 30,
-    restart_delay: 1000,
-    max_memory_restart: "423M",
-    log_date_format: "YYYY-MM-DD HH:mm Z",
-    env: {
-      NODE_ENV: "development",
-    },
-    env_uat: {
-      NODE_ENV: "uat",
-    },
+
+    // Logging Configuration
+    merge_logs: true, // Merges child process logs into parent
+    error_file: "./logs/task-management-error.log", // Error log file path
+    out_file: "./logs/task-management-out.log", // Output log file path
+    log_date_format: "YYYY-MM-DD HH:mm Z", // Log timestamp format
+
+    // Restart Behavior
+    min_uptime: "30s", // Minimum uptime to consider app "started"
+    max_restarts: 30, // Maximum number of restarts before stop
+    restart_delay: 2000, // Delay between restarts (1 second)
+
+    // Environment Variables
     env_production: {
       NODE_ENV: "production",
+    },
+    env_development: {
+      NODE_ENV: "development",
     },
   },
 ];

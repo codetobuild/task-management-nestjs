@@ -9,6 +9,10 @@ export class AppConfigService {
     return this.configService.get("APP_NAME", "");
   }
 
+  get environment(): string {
+    return this.configService.get("NODE_ENV", "development");
+  }
+
   get rateLimitWindowMs(): number {
     return this.configService.get("RATE_LIMIT_WINDOW_MS", 60000);
   }

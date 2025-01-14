@@ -46,4 +46,12 @@ import { CustomThrottlerGuard } from "./common/guards/throttler.guard";
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private readonly configService: ConfigService) {
+    console.log("###################");
+    console.log(
+      `AppModule loaded with environment ${this.configService.get("NODE_ENV")}`,
+    );
+    console.log("###################");
+  }
+}

@@ -3,10 +3,11 @@ import { AppService } from "./app.service";
 
 @Controller()
 export class AppController {
-  constructor(private appService: AppService) {}
+  constructor(public appService: AppService) {}
 
-  @Get("health-check")
-  getHealthCheck(): string {
+  @Get("/health-check")
+  healthCheck(): string {
+    this.appService.getHello();
     return "OK";
   }
 }

@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Sequelize } from "sequelize-typescript";
 import { TaskPublisher } from "src/broker/publishers/task.publisher";
 import { CreateTaskDto } from "src/common/dtos/createTask.dto";
@@ -15,6 +16,7 @@ import { RabbitMQConfigService } from "src/config";
 import { MYSQL_DATABASE_CONNECTION } from "src/database/database.providers";
 import { Task } from "src/database/models/task.model";
 import { RedisService } from "src/redis/redis.service";
+import { Logger } from "winston";
 
 @Injectable()
 export class TaskService {
@@ -23,6 +25,7 @@ export class TaskService {
     private readonly redisService: RedisService,
     private readonly taskPublisher: TaskPublisher,
     private readonly rabbitmqConfigService: RabbitMQConfigService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto) {
@@ -39,9 +42,11 @@ export class TaskService {
         message,
         this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.CREATE,
       );
+      this.logger.info("Task created successfully");
       return task;
     } catch (err) {
       console.error(err);
+      this.logger.error(err);
       await transaction.rollback();
       throw new BadRequestException({
         message: "Failed to create task",
@@ -78,6 +83,7 @@ export class TaskService {
       return task;
     } catch (err) {
       console.error(err);
+      this.logger.error(err);
       if (err instanceof NotFoundException) {
         throw err;
       }
@@ -106,8 +112,10 @@ export class TaskService {
         message,
         this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.UPDATE,
       );
+      this.logger.info(`Task updated successfully for task id: ${id}`);
       return task;
     } catch (err) {
+      this.logger.error(err);
       await transaction.rollback();
       if (err instanceof BadRequestException) {
         throw err; // Re-throw specific exceptions to preserve context.
@@ -140,9 +148,10 @@ export class TaskService {
         message,
         this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.DELETE,
       );
-
+      this.logger.info(`Task deleted successfully for id ${task.id}`);
       return "Task deleted successfully";
     } catch (error) {
+      this.logger.error(error);
       await transaction.rollback();
 
       if (error instanceof NotFoundException) throw error;
@@ -165,6 +174,7 @@ export class TaskService {
       await transaction.commit();
       return "Tasks created successfully";
     } catch (error) {
+      this.logger.error(error);
       await transaction.rollback();
       throw new BadRequestException("Failed to create tasks");
     }
