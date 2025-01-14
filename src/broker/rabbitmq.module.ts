@@ -1,20 +1,19 @@
 import { Module, Global, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
-import { RabbitMQPublisher } from "./producers/task.producer";
-import { RabbitMQConsumer } from "./consumers/task.consumer";
+import { TaskPublisher } from "./publishers/task.publisher";
+import { TaskConsumer } from "./consumers/task.consumer";
 
 @Global()
 @Module({
-  providers: [RabbitMQPublisher, RabbitMQConsumer],
-  exports: [RabbitMQPublisher, RabbitMQConsumer],
+  providers: [TaskPublisher, TaskConsumer],
+  exports: [TaskPublisher, TaskConsumer],
 })
 export class RabbitMQModule implements OnModuleInit, OnModuleDestroy {
   constructor(
-    private readonly publisher: RabbitMQPublisher,
-    private readonly consumer: RabbitMQConsumer,
+    private readonly publisher: TaskPublisher,
+    private readonly consumer: TaskConsumer,
   ) {}
 
   async onModuleInit() {
-    // Initialize both publisher and consumer
     await this.publisher.connect();
     await this.consumer.connect();
   }

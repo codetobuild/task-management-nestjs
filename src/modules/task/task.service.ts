@@ -5,11 +5,13 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Sequelize } from "sequelize-typescript";
-import { RabbitMQPublisher } from "src/broker/producers/task.producer";
+import { TaskPublisher } from "src/broker/publishers/task.publisher";
 import { RABBITMQ_CONFIG } from "src/common/constants/common.constant";
 import { CreateTaskDto } from "src/common/dtos/createTask.dto";
 import { UpdateTaskDto } from "src/common/dtos/update-task.dto";
+import { TaskOperationType } from "src/common/enums";
 import { TaskNotificationMessage } from "src/common/interfaces/taskNotification.interface";
+import { TaskHelper } from "src/common/utils/task.helper";
 import { MYSQL_DATABASE_CONNECTION } from "src/database/database.providers";
 import { Task } from "src/database/models/task.model";
 import { RedisService } from "src/redis/redis.service";
@@ -19,7 +21,7 @@ export class TaskService {
   constructor(
     @Inject(MYSQL_DATABASE_CONNECTION) private sequelize: Sequelize,
     private readonly redisService: RedisService,
-    private readonly rabbitMQPublisher: RabbitMQPublisher,
+    private readonly taskPublisher: TaskPublisher,
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto) {
@@ -28,16 +30,11 @@ export class TaskService {
     try {
       const task = await Task.create({ ...createTaskDto }, { transaction });
       await transaction.commit();
-      const message: TaskNotificationMessage = {
-        type: "CREATE",
-        taskId: task.id,
-        payload: task,
-        timestamp: new Date().toISOString(),
-      };
-      this.rabbitMQPublisher.publish(
-        message,
-        RABBITMQ_CONFIG.ROUTING_KEYS.CREATE,
+      const message = TaskHelper.formatTaskNotificationMessage(
+        TaskOperationType.CREATE,
+        task,
       );
+      this.taskPublisher.publish(message, RABBITMQ_CONFIG.ROUTING_KEYS.CREATE);
       return task;
     } catch (err) {
       console.error(err);
@@ -96,13 +93,12 @@ export class TaskService {
       }
       const updatedTask = await task.update(updateTaskDto, { transaction });
       await transaction.commit();
-      const message: TaskNotificationMessage = {
-        type: "UPDATE",
-        taskId: updatedTask.id,
-        payload: updatedTask,
-        timestamp: new Date().toISOString(),
-      };
-      await this.rabbitMQPublisher.publish(
+      const message: TaskNotificationMessage =
+        TaskHelper.formatTaskNotificationMessage(
+          TaskOperationType.UPDATE,
+          updatedTask,
+        );
+      await this.taskPublisher.publish(
         message,
         RABBITMQ_CONFIG.ROUTING_KEYS.UPDATE,
       );
@@ -130,13 +126,13 @@ export class TaskService {
       await task.destroy({ transaction });
       await transaction.commit();
       await this.redisService.del(`task:${id}`);
-      const message: TaskNotificationMessage = {
-        type: "DELETE",
-        taskId: task.id,
-        timestamp: new Date().toISOString(),
-      };
+      const message: TaskNotificationMessage =
+        TaskHelper.formatTaskNotificationMessage(
+          TaskOperationType.DELETE,
+          task,
+        );
 
-      await this.rabbitMQPublisher.publish(
+      await this.taskPublisher.publish(
         message,
         RABBITMQ_CONFIG.ROUTING_KEYS.DELETE,
       );

@@ -4,9 +4,11 @@ import { RABBITMQ_CONFIG } from "../../common/constants/common.constant";
 import { TaskNotificationMessage } from "../../common/interfaces/taskNotification.interface";
 
 @Injectable()
-export class RabbitMQPublisher {
+export class TaskPublisher {
   private connection: amqp.Connection;
   private channel: amqp.Channel;
+
+  constructor() {}
 
   async connect() {
     this.connection = await amqp.connect({

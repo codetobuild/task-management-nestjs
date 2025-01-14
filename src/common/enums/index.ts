@@ -9,3 +9,9 @@ export enum TaskPriority {
   MEDIUM = "MEDIUM",
   HIGH = "HIGH",
 }
+
+export enum TaskOperationType {
+  CREATE = "CREATE",
+  UPDATE = "UPDATE",
+  DELETE = "DELETE",
+}

@@ -3,7 +3,7 @@ import * as amqp from "amqplib";
 import { RABBITMQ_CONFIG } from "../../common/constants/common.constant";
 
 @Injectable()
-export class RabbitMQConsumer {
+export class TaskConsumer {
   private connection: amqp.Connection;
   private channel: amqp.Channel;
 
@@ -33,15 +33,9 @@ export class RabbitMQConsumer {
       const routingKey = RABBITMQ_CONFIG.ROUTING_KEYS[operation.toUpperCase()];
       await this.channel.bindQueue(queue, RABBITMQ_CONFIG.EXCHANGE, routingKey);
     }
-
-    // Start consuming messages
-    await this.consumeMessages((content) => {
-      // Handle the consumed message content here
-      console.log("Processing message:", content);
-    });
   }
 
-  private async consumeMessages(callback: (content: any) => void) {
+  async consumeMessages(callback: (content: any) => void) {
     if (!this.channel) {
       throw new Error("RabbitMQ channel is not initialized");
     }
