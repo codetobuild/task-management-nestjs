@@ -24,7 +24,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const responseBody: ApiResponse<null> = {
       data: null,
-      error: null,
       message: message,
       code: status,
       timestamp: new Date().toISOString(),

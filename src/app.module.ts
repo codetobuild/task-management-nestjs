@@ -9,14 +9,9 @@ import { WinstonModule } from "nest-winston";
 import { winstonLoggerConfig } from "./config/winston-logger.config";
 import { RedisModule } from "./redis/redis.module";
 import { RabbitMQModule } from "./broker/rabbitmq.module";
-import {
-  ThrottlerAsyncOptions,
-  ThrottlerModule,
-  ThrottlerModuleOptions,
-} from "@nestjs/throttler";
+import { ThrottlerModule, ThrottlerModuleOptions } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { CustomThrottlerGuard } from "./common/guards/throttler.guard";
-import { AppConfigService } from "./config";
 
 @Module({
   imports: [
