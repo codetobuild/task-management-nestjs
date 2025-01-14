@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
-import { TaskConsumer } from "src/broker/consumers/task.consumer";
+import { TaskConsumer } from "src/broker/consumers";
 
 @Injectable()
 export class NotificationService implements OnModuleInit {

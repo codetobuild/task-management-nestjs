@@ -1,25 +1,27 @@
-import { ConfigService } from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
 import { Dialect } from "sequelize";
 import { Sequelize, SequelizeOptions } from "sequelize-typescript";
+import { DatabaseConfigService } from "../config";
 
 export const MYSQL_DATABASE_CONNECTION = "MYSQL_DATABASE_CONNECTION";
 
 export const databaseProviders = [
   {
     provide: MYSQL_DATABASE_CONNECTION,
-    inject: [ConfigService],
-    useFactory: async (configService: ConfigService) => {
+    imports: [ConfigModule],
+    inject: [DatabaseConfigService],
+    useFactory: async (
+      databaseConfigService: DatabaseConfigService,
+    ): Promise<Sequelize> => {
       const sequelizeOptions: SequelizeOptions = {
-        dialect: configService.get<string>("database.dialect") as Dialect,
-        host: configService.get<string>("database.host"),
-        port: configService.get<number>("database.port"),
-        username: configService.get<string>("database.username"),
-        password: configService.get<string>("database.password"),
-        database: configService.get<string>("database.database"),
-        // logging: configService.get<boolean | ((msg: string) => void)>(
-        //   "database.logging",
-        // ),
-        pool: configService.get<object>("database.pool"),
+        dialect: databaseConfigService.dialect as Dialect,
+        host: databaseConfigService.host,
+        port: databaseConfigService.port,
+        username: databaseConfigService.username,
+        password: databaseConfigService.password,
+        database: databaseConfigService.database,
+        logging: databaseConfigService.logging,
+        pool: databaseConfigService.pool,
         models: [__dirname + "/../**/*.model{.ts,.js}"],
         modelMatch: (filename: string, member: string) => {
           return (
@@ -30,9 +32,8 @@ export const databaseProviders = [
       };
 
       const sequelize = new Sequelize(sequelizeOptions);
-      // sequelize.addModels([Task]);
       await sequelize.sync();
-      await await sequelize.authenticate();
+      await sequelize.authenticate();
       return sequelize;
     },
   },

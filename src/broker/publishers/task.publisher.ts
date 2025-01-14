@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import * as amqp from "amqplib";
-import { RABBITMQ_CONFIG } from "../../common/constants/common.constant";
+import { TASK_BROKER_CONFIG } from "../../common/constants";
 import { TaskNotificationMessage } from "../../common/interfaces/taskNotification.interface";
 
 @Injectable()
@@ -22,8 +22,8 @@ export class TaskPublisher {
 
     // Assert the exchange
     await this.channel.assertExchange(
-      RABBITMQ_CONFIG.EXCHANGE,
-      RABBITMQ_CONFIG.EXCHANGE_TYPE,
+      TASK_BROKER_CONFIG.EXCHANGE,
+      TASK_BROKER_CONFIG.EXCHANGE_TYPE,
       { durable: true },
     );
   }
@@ -37,9 +37,14 @@ export class TaskPublisher {
     }
 
     const messageBuffer = Buffer.from(JSON.stringify(message));
-    this.channel.publish(RABBITMQ_CONFIG.EXCHANGE, routingKey, messageBuffer, {
-      persistent: true,
-    });
+    this.channel.publish(
+      TASK_BROKER_CONFIG.EXCHANGE,
+      routingKey,
+      messageBuffer,
+      {
+        persistent: true,
+      },
+    );
 
     console.log(
       `Message published: ${JSON.stringify(message)} with routingKey: ${routingKey}`,

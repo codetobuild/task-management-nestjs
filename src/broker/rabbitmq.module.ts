@@ -1,6 +1,6 @@
 import { Module, Global, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
-import { TaskPublisher } from "./publishers/task.publisher";
-import { TaskConsumer } from "./consumers/task.consumer";
+import { TaskPublisher } from "./publishers";
+import { TaskConsumer } from "./consumers";
 
 @Global()
 @Module({

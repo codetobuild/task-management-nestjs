@@ -1,12 +1,11 @@
 import { Global, Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import databaseConfig from "src/config/database.config";
+import { DatabaseConfigService } from "../config";
 import { databaseProviders } from "./database.providers";
+import { ConfigService } from "@nestjs/config";
 
 @Global()
 @Module({
-  imports: [ConfigModule.forFeature(databaseConfig)],
-  providers: [...databaseProviders],
-  exports: [...databaseProviders],
+  providers: [...databaseProviders, ConfigService, DatabaseConfigService],
+  exports: [...databaseProviders, DatabaseConfigService],
 })
 export class DatabaseModule {}

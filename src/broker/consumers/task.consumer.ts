@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import * as amqp from "amqplib";
-import { RABBITMQ_CONFIG } from "../../common/constants/common.constant";
+import { TASK_BROKER_CONFIG } from "../../common/constants";
 
 @Injectable()
 export class TaskConsumer {
@@ -19,19 +19,26 @@ export class TaskConsumer {
 
     // Assert the exchange and queues
     await this.channel.assertExchange(
-      RABBITMQ_CONFIG.EXCHANGE,
-      RABBITMQ_CONFIG.EXCHANGE_TYPE,
+      TASK_BROKER_CONFIG.EXCHANGE,
+      TASK_BROKER_CONFIG.EXCHANGE_TYPE,
       { durable: true },
     );
 
-    for (const queue of Object.values(RABBITMQ_CONFIG.QUEUES)) {
+    for (const queue of Object.values(TASK_BROKER_CONFIG.QUEUES)) {
       await this.channel.assertQueue(queue, { durable: true });
     }
 
     // Bind queues to the exchange
-    for (const [operation, queue] of Object.entries(RABBITMQ_CONFIG.QUEUES)) {
-      const routingKey = RABBITMQ_CONFIG.ROUTING_KEYS[operation.toUpperCase()];
-      await this.channel.bindQueue(queue, RABBITMQ_CONFIG.EXCHANGE, routingKey);
+    for (const [operation, queue] of Object.entries(
+      TASK_BROKER_CONFIG.QUEUES,
+    )) {
+      const routingKey =
+        TASK_BROKER_CONFIG.ROUTING_KEYS[operation.toUpperCase()];
+      await this.channel.bindQueue(
+        queue,
+        TASK_BROKER_CONFIG.EXCHANGE,
+        routingKey,
+      );
     }
   }
 
@@ -39,7 +46,9 @@ export class TaskConsumer {
     if (!this.channel) {
       throw new Error("RabbitMQ channel is not initialized");
     }
-    for (const [operation, queue] of Object.entries(RABBITMQ_CONFIG.QUEUES)) {
+    for (const [operation, queue] of Object.entries(
+      TASK_BROKER_CONFIG.QUEUES,
+    )) {
       await this.channel.consume(queue, async (msg) => {
         if (msg) {
           const content = JSON.parse(msg.content.toString());

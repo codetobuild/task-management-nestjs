@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { Sequelize } from "sequelize-typescript";
 import { TaskPublisher } from "src/broker/publishers/task.publisher";
-import { RABBITMQ_CONFIG } from "src/common/constants/common.constant";
+import { TASK_BROKER_CONFIG } from "src/common/constants";
 import { CreateTaskDto } from "src/common/dtos/createTask.dto";
 import { UpdateTaskDto } from "src/common/dtos/update-task.dto";
 import { TaskOperationType } from "src/common/enums";
@@ -34,7 +34,10 @@ export class TaskService {
         TaskOperationType.CREATE,
         task,
       );
-      this.taskPublisher.publish(message, RABBITMQ_CONFIG.ROUTING_KEYS.CREATE);
+      this.taskPublisher.publish(
+        message,
+        TASK_BROKER_CONFIG.ROUTING_KEYS.CREATE,
+      );
       return task;
     } catch (err) {
       console.error(err);
@@ -100,7 +103,7 @@ export class TaskService {
         );
       await this.taskPublisher.publish(
         message,
-        RABBITMQ_CONFIG.ROUTING_KEYS.UPDATE,
+        TASK_BROKER_CONFIG.ROUTING_KEYS.UPDATE,
       );
       return task;
     } catch (err) {
@@ -134,7 +137,7 @@ export class TaskService {
 
       await this.taskPublisher.publish(
         message,
-        RABBITMQ_CONFIG.ROUTING_KEYS.DELETE,
+        TASK_BROKER_CONFIG.ROUTING_KEYS.DELETE,
       );
 
       return "Task deleted successfully";

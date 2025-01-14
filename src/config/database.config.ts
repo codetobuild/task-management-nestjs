@@ -1,17 +1,47 @@
-import { registerAs } from "@nestjs/config";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { PoolOptions } from "sequelize";
 
-export default registerAs("database", () => ({
-  dialect: "mysql",
-  host: process.env.DB_HOST || "localhost",
-  port: parseInt(process.env.DB_PORT, 10) || 3306,
-  username: process.env.DB_USERNAME || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "task_management_db",
-  logging: process.env.DB_LOGGING === "true" ? console.log : false,
-  pool: {
-    max: parseInt(process.env.DB_POOL_MAX, 10) || 5,
-    min: parseInt(process.env.DB_POOL_MIN, 10) || 0,
-    acquire: parseInt(process.env.DB_POOL_ACQUIRE, 10) || 30000,
-    idle: parseInt(process.env.DB_POOL_IDLE, 10) || 10000,
-  },
-}));
+@Injectable()
+export class DatabaseConfigService {
+  constructor(private configService: ConfigService) {}
+
+  get dialect(): string {
+    return this.configService.get<string>("DB_DIALECT", "mysql");
+  }
+
+  get host(): string {
+    return this.configService.get<string>("DB_HOST", "localhost");
+  }
+
+  get port(): number {
+    return this.configService.get<number>("DB_PORT", 3306);
+  }
+
+  get username(): string {
+    return this.configService.get<string>("DB_USERNAME", "root");
+  }
+
+  get password(): string {
+    return this.configService.get<string>("DB_PASSWORD", "");
+  }
+
+  get database(): string {
+    return this.configService.get<string>("DB_NAME", "task_management_db");
+  }
+
+  get logging(): boolean | ((msg: string) => void) {
+    return this.configService.get<string>("DB_LOGGING") === "true"
+      ? console.log
+      : false;
+  }
+
+  get pool(): PoolOptions {
+    return {
+      max: Number(this.configService.get<number>("DB_POOL_MAX", 5)),
+      min: Number(this.configService.get<number>("DB_POOL_MIN", 1)),
+      acquire: Number(this.configService.get<number>("DB_POOL_ACQUIRE", 30000)),
+      idle: Number(this.configService.get<number>("DB_POOL_IDLE", 10000)),
+    };
+  }
+}
