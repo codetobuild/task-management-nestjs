@@ -6,12 +6,12 @@ import {
 } from "@nestjs/common";
 import { Sequelize } from "sequelize-typescript";
 import { TaskPublisher } from "src/broker/publishers/task.publisher";
-import { TASK_BROKER_CONFIG } from "src/common/constants";
 import { CreateTaskDto } from "src/common/dtos/createTask.dto";
 import { UpdateTaskDto } from "src/common/dtos/update-task.dto";
 import { TaskOperationType } from "src/common/enums";
 import { TaskNotificationMessage } from "src/common/interfaces/taskNotification.interface";
 import { TaskHelper } from "src/common/utils/task.helper";
+import { RabbitMQConfigService } from "src/config";
 import { MYSQL_DATABASE_CONNECTION } from "src/database/database.providers";
 import { Task } from "src/database/models/task.model";
 import { RedisService } from "src/redis/redis.service";
@@ -22,6 +22,7 @@ export class TaskService {
     @Inject(MYSQL_DATABASE_CONNECTION) private sequelize: Sequelize,
     private readonly redisService: RedisService,
     private readonly taskPublisher: TaskPublisher,
+    private readonly rabbitmqConfigService: RabbitMQConfigService,
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto) {
@@ -36,7 +37,7 @@ export class TaskService {
       );
       this.taskPublisher.publish(
         message,
-        TASK_BROKER_CONFIG.ROUTING_KEYS.CREATE,
+        this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.CREATE,
       );
       return task;
     } catch (err) {
@@ -103,7 +104,7 @@ export class TaskService {
         );
       await this.taskPublisher.publish(
         message,
-        TASK_BROKER_CONFIG.ROUTING_KEYS.UPDATE,
+        this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.UPDATE,
       );
       return task;
     } catch (err) {
@@ -137,7 +138,7 @@ export class TaskService {
 
       await this.taskPublisher.publish(
         message,
-        TASK_BROKER_CONFIG.ROUTING_KEYS.DELETE,
+        this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.DELETE,
       );
 
       return "Task deleted successfully";
