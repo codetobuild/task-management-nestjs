@@ -1,7 +1,3 @@
-export const RABBITMQ_EXCHANGE = "task_notifications_exchange";
-export const RABBITMQ_QUEUE = "task_notifications_queue";
-export const RABBITMQ_ROUTING_KEY = "task.notifications";
-
 export const TASK_BROKER_CONFIG = Object.freeze({
   EXCHANGE: "task_notifications_exchange",
   QUEUES: {

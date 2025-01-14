@@ -1,42 +1,48 @@
 import { Injectable } from "@nestjs/common";
 import * as amqp from "amqplib";
-import { TASK_BROKER_CONFIG } from "../../common/constants";
+import { RabbitMQConfigService } from "src/config";
 
 @Injectable()
 export class TaskConsumer {
   private connection: amqp.Connection;
   private channel: amqp.Channel;
 
+  constructor(private readonly rabbitmqConfigService: RabbitMQConfigService) {}
+
   async connect() {
     this.connection = await amqp.connect({
-      hostname: process.env.RABBITMQ_HOST || "localhost",
-      port: Number(process.env.RABBITMQ_PORT) || 5672,
-      username: process.env.RABBITMQ_USER || "guest",
-      password: process.env.RABBITMQ_PASSWORD || "guest",
+      hostname: this.rabbitmqConfigService.host,
+      port: this.rabbitmqConfigService.port,
+      username: this.rabbitmqConfigService.username,
+      password: this.rabbitmqConfigService.password,
     });
 
     this.channel = await this.connection.createChannel();
 
     // Assert the exchange and queues
     await this.channel.assertExchange(
-      TASK_BROKER_CONFIG.EXCHANGE,
-      TASK_BROKER_CONFIG.EXCHANGE_TYPE,
+      this.rabbitmqConfigService.taskConfig.EXCHANGE,
+      this.rabbitmqConfigService.taskConfig.EXCHANGE_TYPE,
       { durable: true },
     );
 
-    for (const queue of Object.values(TASK_BROKER_CONFIG.QUEUES)) {
+    for (const queue of Object.values(
+      this.rabbitmqConfigService.taskConfig.QUEUES,
+    )) {
       await this.channel.assertQueue(queue, { durable: true });
     }
 
     // Bind queues to the exchange
     for (const [operation, queue] of Object.entries(
-      TASK_BROKER_CONFIG.QUEUES,
+      this.rabbitmqConfigService.taskConfig.QUEUES,
     )) {
       const routingKey =
-        TASK_BROKER_CONFIG.ROUTING_KEYS[operation.toUpperCase()];
+        this.rabbitmqConfigService.taskConfig.ROUTING_KEYS[
+          operation.toUpperCase()
+        ];
       await this.channel.bindQueue(
         queue,
-        TASK_BROKER_CONFIG.EXCHANGE,
+        this.rabbitmqConfigService.taskConfig.EXCHANGE,
         routingKey,
       );
     }
@@ -47,7 +53,7 @@ export class TaskConsumer {
       throw new Error("RabbitMQ channel is not initialized");
     }
     for (const [operation, queue] of Object.entries(
-      TASK_BROKER_CONFIG.QUEUES,
+      this.rabbitmqConfigService.taskConfig.QUEUES,
     )) {
       await this.channel.consume(queue, async (msg) => {
         if (msg) {

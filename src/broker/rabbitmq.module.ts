@@ -1,11 +1,12 @@
 import { Module, Global, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
 import { TaskPublisher } from "./publishers";
 import { TaskConsumer } from "./consumers";
+import { RabbitMQConfigService } from "src/config/rabbitmq.config";
 
 @Global()
 @Module({
-  providers: [TaskPublisher, TaskConsumer],
-  exports: [TaskPublisher, TaskConsumer],
+  providers: [TaskPublisher, TaskConsumer, RabbitMQConfigService],
+  exports: [TaskPublisher, TaskConsumer, RabbitMQConfigService],
 })
 export class RabbitMQModule implements OnModuleInit, OnModuleDestroy {
   constructor(

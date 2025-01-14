@@ -1,29 +1,29 @@
 import { Injectable } from "@nestjs/common";
 import * as amqp from "amqplib";
-import { TASK_BROKER_CONFIG } from "../../common/constants";
 import { TaskNotificationMessage } from "../../common/interfaces/taskNotification.interface";
+import { RabbitMQConfigService } from "src/config";
 
 @Injectable()
 export class TaskPublisher {
   private connection: amqp.Connection;
   private channel: amqp.Channel;
 
-  constructor() {}
+  constructor(private readonly rabbitmqConfigService: RabbitMQConfigService) {}
 
   async connect() {
     this.connection = await amqp.connect({
-      hostname: process.env.RABBITMQ_HOST || "localhost",
-      port: Number(process.env.RABBITMQ_PORT) || 5672,
-      username: process.env.RABBITMQ_USER || "guest",
-      password: process.env.RABBITMQ_PASSWORD || "guest",
+      hostname: this.rabbitmqConfigService.host,
+      port: this.rabbitmqConfigService.port,
+      username: this.rabbitmqConfigService.username,
+      password: this.rabbitmqConfigService.password,
     });
 
     this.channel = await this.connection.createChannel();
 
     // Assert the exchange
     await this.channel.assertExchange(
-      TASK_BROKER_CONFIG.EXCHANGE,
-      TASK_BROKER_CONFIG.EXCHANGE_TYPE,
+      this.rabbitmqConfigService.taskConfig.EXCHANGE,
+      this.rabbitmqConfigService.taskConfig.EXCHANGE_TYPE,
       { durable: true },
     );
   }
@@ -38,7 +38,7 @@ export class TaskPublisher {
 
     const messageBuffer = Buffer.from(JSON.stringify(message));
     this.channel.publish(
-      TASK_BROKER_CONFIG.EXCHANGE,
+      this.rabbitmqConfigService.taskConfig.EXCHANGE,
       routingKey,
       messageBuffer,
       {
