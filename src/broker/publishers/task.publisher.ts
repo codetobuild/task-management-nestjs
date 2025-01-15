@@ -31,7 +31,21 @@ export class TaskPublisher {
    * @throws Will throw an error if the connection or channel creation fails.
    */
   async connect() {
-    // Implementation
+    this.connection = await amqp.connect({
+      hostname: this.rabbitmqConfigService.host,
+      port: this.rabbitmqConfigService.port,
+      username: this.rabbitmqConfigService.username,
+      password: this.rabbitmqConfigService.password,
+    });
+
+    this.channel = await this.connection.createChannel();
+
+    // Assert the exchange
+    await this.channel.assertExchange(
+      this.rabbitmqConfigService.taskConfig.EXCHANGE,
+      this.rabbitmqConfigService.taskConfig.EXCHANGE_TYPE,
+      { durable: true },
+    );
   }
 
   /**
@@ -44,7 +58,23 @@ export class TaskPublisher {
     message: TaskNotificationMessage,
     routingKey: string,
   ): Promise<void> {
-    // Implementation
+    if (!this.channel) {
+      throw new Error("RabbitMQ channel is not initialized");
+    }
+
+    const messageBuffer = Buffer.from(JSON.stringify(message));
+    this.channel.publish(
+      this.rabbitmqConfigService.taskConfig.EXCHANGE,
+      routingKey,
+      messageBuffer,
+      {
+        persistent: true,
+      },
+    );
+
+    console.log(
+      `Message published: ${JSON.stringify(message)} with routingKey: ${routingKey}`,
+    );
   }
 
   /**
@@ -52,6 +82,7 @@ export class TaskPublisher {
    * @throws Will throw an error if the channel or connection closure fails.
    */
   async disconnect() {
-    // Implementation
+    await this.channel?.close();
+    await this.connection?.close();
   }
 }
