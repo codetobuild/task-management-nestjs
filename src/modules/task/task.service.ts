@@ -125,7 +125,7 @@ export class TaskService {
       const task = await Task.findByPk(id);
       if (!task) {
         throw new BadRequestException({
-          message: "Task not found",
+          message: "Task not found to update task",
         });
       }
       const updatedTask = await task.update(updateTaskDto, { transaction });
@@ -164,8 +164,9 @@ export class TaskService {
       const task = await Task.findByPk(id);
 
       if (!task) {
-        await transaction.rollback();
-        throw new NotFoundException(`Task with ID ${id} not found`);
+        throw new BadRequestException(
+          `Task with ID ${id} not found to delete.`,
+        );
       }
 
       await task.destroy({ transaction });
@@ -187,7 +188,9 @@ export class TaskService {
       this.logger.error(error);
       await transaction.rollback();
 
-      if (error instanceof NotFoundException) throw error;
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new BadRequestException("Failed to delete task");
     }
   }
