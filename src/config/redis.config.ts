@@ -1,6 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+/**
+ * RedisConfigService
+ *
+ * This service provides methods to access Redis configuration settings
+ * from environment variables using the ConfigService.
+ */
 @Injectable()
 export class RedisConfigService {
   constructor(private configService: ConfigService) {}

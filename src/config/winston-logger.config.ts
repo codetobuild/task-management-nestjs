@@ -4,6 +4,12 @@ import * as path from "path";
 import * as winston from "winston";
 import { LOGS_DIRECTORY } from "../common/constants";
 
+/**
+ * Winston Logger Configuration
+ *
+ * This configuration sets up Winston logger with multiple transports including
+ * console and rotating file transports for both info and error logs.
+ */
 export const winstonLoggerConfig = {
   transports: [
     // Console Transport

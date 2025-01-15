@@ -6,6 +6,9 @@ import {
 } from "@nestjs/common";
 import { ThrottlerGuard, ThrottlerLimitDetail } from "@nestjs/throttler";
 
+/**
+ * Custom Throttler Guard implementation
+ */
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
   // Override to customize error response

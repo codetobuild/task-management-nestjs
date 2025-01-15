@@ -2,6 +2,12 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PoolOptions } from "sequelize";
 
+/**
+ * DatabaseConfigService
+ *
+ * This service provides methods to access database configuration settings
+ * from environment variables using the ConfigService.
+ */
 @Injectable()
 export class DatabaseConfigService {
   constructor(private configService: ConfigService) {}

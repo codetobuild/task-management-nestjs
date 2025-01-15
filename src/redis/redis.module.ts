@@ -7,6 +7,13 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { RedisService } from "./redis.service";
 import { RedisConfigService } from "src/config";
 
+/**
+ * RedisModule
+ *
+ * This module is responsible for providing Redis connection and configuration
+ * services to the application. It uses @nestjs-modules/ioredis for Redis integration
+ * and integrates with the ConfigService to load Redis configuration from environment variables.
+ */
 @Global()
 @Module({
   imports: [

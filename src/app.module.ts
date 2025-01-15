@@ -1,17 +1,18 @@
-import { Module } from "@nestjs/common";
+import { Inject, Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TaskModule } from "./modules/task/task.module";
 import { NotificationModule } from "./modules/notification/notification.module";
 import { DatabaseModule } from "./database/database.module";
-import { WinstonModule } from "nest-winston";
+import { WINSTON_MODULE_PROVIDER, WinstonModule } from "nest-winston";
 import { winstonLoggerConfig } from "./config/winston-logger.config";
 import { RedisModule } from "./redis/redis.module";
 import { RabbitMQModule } from "./broker/rabbitmq.module";
 import { ThrottlerModule, ThrottlerModuleOptions } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { CustomThrottlerGuard } from "./common/guards/throttler.guard";
+import { Logger } from "winston";
 
 @Module({
   imports: [
@@ -47,11 +48,11 @@ import { CustomThrottlerGuard } from "./common/guards/throttler.guard";
   ],
 })
 export class AppModule {
-  constructor(private readonly configService: ConfigService) {
-    console.log("###################");
-    console.log(
-      `AppModule loaded with environment ${this.configService.get("NODE_ENV")}`,
-    );
-    console.log("###################");
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {
+    logger.info("NODE ENVIRONMENT : " + process.env.NODE_ENV);
+    console.log("NODE ENVIRONMENT : " + process.env.NODE_ENV);
   }
 }

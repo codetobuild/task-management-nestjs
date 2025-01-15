@@ -1,6 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+/**
+ * AppConfigService
+ *
+ * This service provides methods to access application configuration settings
+ * from environment variables using the ConfigService.
+ */
 @Injectable()
 export class AppConfigService {
   constructor(private readonly configService: ConfigService) {}

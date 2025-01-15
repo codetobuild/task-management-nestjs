@@ -3,16 +3,19 @@ import { Dialect } from "sequelize";
 import { Sequelize, SequelizeOptions } from "sequelize-typescript";
 import { DatabaseConfigService } from "../config";
 
+// Constant for MySQL database connection provider
 export const MYSQL_DATABASE_CONNECTION = "MYSQL_DATABASE_CONNECTION";
 
+// Array of database providers
 export const databaseProviders = [
   {
-    provide: MYSQL_DATABASE_CONNECTION,
+    provide: MYSQL_DATABASE_CONNECTION, // Provide the MySQL database connection
     imports: [ConfigModule],
     inject: [DatabaseConfigService],
     useFactory: async (
       databaseConfigService: DatabaseConfigService,
     ): Promise<Sequelize> => {
+      // Configure Sequelize options using values from DatabaseConfigService
       const sequelizeOptions: SequelizeOptions = {
         dialect: databaseConfigService.dialect as Dialect,
         host: databaseConfigService.host,

@@ -8,6 +8,9 @@ import {
 } from "class-validator";
 import { TaskPriority, TaskStatus } from "../enums";
 
+/**
+ * DTO to create a new Task
+ */
 export class CreateTaskDto {
   @IsString()
   @IsNotEmpty()

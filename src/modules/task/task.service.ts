@@ -28,7 +28,13 @@ export class TaskService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
-  async createTask(createTaskDto: CreateTaskDto) {
+  /**
+   * Create a new task
+   *
+   * @param {CreateTaskDto} createTaskDto - The data transfer object containing the task details.
+   * @returns {Promise<Task>} A promise that resolves to the created task.
+   */
+  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     const transaction = await this.sequelize.transaction();
 
     try {
@@ -54,13 +60,18 @@ export class TaskService {
     }
   }
 
-  async getAllTasks() {
+  /**
+   * Get all tasks
+   *
+   * @returns {Promise<Task[]>} A promise that resolves to an array of tasks.
+   */
+  async getAllTasks(): Promise<Task[]> {
     const transaction = await this.sequelize.transaction();
 
     try {
-      const task = await Task.findAll({ transaction });
+      const tasks = await Task.findAll({ transaction });
       await transaction.commit();
-      return task;
+      return tasks;
     } catch (err) {
       console.error(err);
       await transaction.rollback();
@@ -68,10 +79,16 @@ export class TaskService {
     }
   }
 
-  async getTaskById(id: string) {
+  /**
+   * Get task by ID
+   *
+   * @param {string} id - The ID of the task to retrieve.
+   * @returns {Promise<Task>} A promise that resolves to the task with the specified ID.
+   */
+  async getTaskById(id: string): Promise<Task> {
     const cachedTask = await this.redisService.get(`task:${id}`);
     if (cachedTask) {
-      return cachedTask;
+      return cachedTask as Task;
     }
 
     try {
@@ -91,7 +108,17 @@ export class TaskService {
     }
   }
 
-  async updateTaskById(id: string, updateTaskDto: UpdateTaskDto) {
+  /**
+   * Update a task by ID
+   *
+   * @param {string} id - The ID of the task to update.
+   * @param {UpdateTaskDto} updateTaskDto - The data transfer object containing the updated task details.
+   * @returns {Promise<Task>} A promise that resolves to the updated task.
+   */
+  async updateTaskById(
+    id: string,
+    updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
     const transaction = await this.sequelize.transaction();
 
     try {
@@ -120,11 +147,17 @@ export class TaskService {
       if (err instanceof BadRequestException) {
         throw err; // Re-throw specific exceptions to preserve context.
       }
-      throw new BadRequestException("Failed to create task");
+      throw new BadRequestException("Failed to update task");
     }
   }
 
-  async deleteTaskById(id: string) {
+  /**
+   * Delete a task by ID
+   *
+   * @param {string} id - The ID of the task to delete.
+   * @returns {Promise<string>} A promise that resolves to a success message.
+   */
+  async deleteTaskById(id: string): Promise<string> {
     const transaction = await this.sequelize.transaction();
 
     try {
@@ -159,7 +192,13 @@ export class TaskService {
     }
   }
 
-  async bulkCreateTasks(tasks: CreateTaskDto[]) {
+  /**
+   * Bulk create tasks
+   *
+   * @param {CreateTaskDto[]} tasks - An array of task data transfer objects.
+   * @returns {Promise<string>} A promise that resolves to a success message.
+   */
+  async bulkCreateTasks(tasks: CreateTaskDto[]): Promise<string> {
     const transaction = await this.sequelize.transaction();
 
     try {

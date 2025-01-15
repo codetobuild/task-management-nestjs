@@ -1,6 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+/**
+ * RabbitMQConfigService
+ *
+ * This service provides methods to access RabbitMQ configuration settings
+ * from environment variables using the ConfigService.
+ */
 @Injectable()
 export class RabbitMQConfigService {
   constructor(private configService: ConfigService) {}
