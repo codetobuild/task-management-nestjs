@@ -6,10 +6,10 @@ The Task Management Application is a robust, feature-rich solution designed to h
 
 - [Features](#features)
 - [Project Setup](#project-setup)
-- [Running the App](#running-the-app)
+- [Project Configuration](#example-env-file-configuration)
 - [Connecting to RabbitMQ, Redis, and MySQL](#connecting-to-rabbitmq-redis-and-mysql)
-- [Example .env File Configuration](#example-env-file-configuration)
-- [Run Tests](#run-tests)
+- [Running the App](#running-the-app)
+- [API Endpoints](#api-endpoints)
 - [Folder Structure](#folder-structure)
 
 ## Features
@@ -74,14 +74,88 @@ Here is a list of features available in the current project:
 First, clone the repository and navigate to the project directory:
 
 ```bash
-git clone https://github.com/your-repo/task-management.git
-cd task-management
+git clone https://github.com/codetobuild/task-management-nestjs
+
+cd task-management-nestjs
 ```
 
 Then, install the project dependencies:
 
 ```bash
 npm install
+```
+
+## Example .env File Configuration
+
+Create a `.env` file in the root directory of your project and add the following configuration:
+
+```env
+# Application Configuration
+APP_NAME=MyApp                     # Your application name
+SERVER_PORT=3000                   # Port number for the server
+
+# API Configuration
+API_PREFIX=/api/v1                 # API route prefix
+
+# Rate Limiting Configuration
+RATE_LIMIT_WINDOW_MS=300000   # Time window for rate limiting in milliseconds (5 minutes)
+RATE_LIMIT_MAX=100           # Maximum number of requests within the time window
+
+# Database Configuration
+DB_DIALECT=postgres                # Database type (postgres, mysql, etc.)
+DB_HOST=localhost                  # Database host address
+DB_PORT=5432                      # Database port number
+DB_USERNAME=postgres              # Database username
+DB_PASSWORD=postgres123           # Database password
+DB_NAME=my_database              # Database name
+DB_LOGGING=false                 # Enable/disable database query logging
+DB_SYNC=true                     # Enable/disable database synchronization
+DB_POOL_MAX=10                   # Maximum number of connections in pool
+DB_POOL_MIN=2                    # Minimum number of connections in pool
+DB_POOL_ACQUIRE=60000           # Maximum time (ms) to acquire connection
+DB_POOL_IDLE=20000             # Maximum time (ms) connection can be idle
+
+# Redis Configuration
+REDIS_HOST=localhost            # Redis server host address
+REDIS_PORT=6379                # Redis server port
+REDIS_USERNAME=default         # Redis username
+REDIS_PASSWORD=redis123        # Redis password
+REDIS_CONNECTION_TYPE=single   # Redis connection type (single/cluster)
+
+# RabbitMQ Configuration
+RABBITMQ_HOST=localhost        # RabbitMQ server host address
+RABBITMQ_PORT=5672            # RabbitMQ server port
+RABBITMQ_USER=admin           # RabbitMQ username
+RABBITMQ_PASSWORD=admin123    # RabbitMQ password
+
+```
+
+## Connecting to RabbitMQ, Redis, and MySQL
+
+Ensure that RabbitMQ, Redis, and MySQL are installed and running on your machine or accessible from your environment.
+
+### RabbitMQ
+
+Start RabbitMQ server:
+
+```bash
+rabbitmq-server
+```
+
+### Redis
+
+Start Redis server:
+
+```bash
+redis-server
+```
+
+### MySQL
+
+Start MySQL server and follow SQL script shared in **`assets/database_sql_script.sql`** file to database and necessary tables to get started;
+
+```sql
+CREATE DATABASE task_management_db;
 ```
 
 ## Running the App
@@ -141,104 +215,16 @@ PM2 is a production process manager for Node.js applications. It allows you to k
    pm2 restart task-management-app
    ```
 
-## Connecting to RabbitMQ, Redis, and MySQL
+## API Endpoints
 
-Ensure that RabbitMQ, Redis, and MySQL are installed and running on your machine or accessible from your environment.
+To use the API endpoints, you can import the Postman collection JSON file located at **`assets/TASK-MANAGEMENT-API.postman_collection.json`** into Postman. This will allow you to easily test and interact with the API.
 
-### RabbitMQ
-
-Start RabbitMQ server:
-
-```bash
-rabbitmq-server
-```
-
-### Redis
-
-Start Redis server:
-
-```bash
-redis-server
-```
-
-### MySQL
-
-Start MySQL server and create a database for the application:
-
-```sql
-CREATE DATABASE task_management_db;
-```
-
-## Example .env File Configuration
-
-Create a `.env` file in the root directory of your project and add the following configuration:
-
-```env
-# Application Configuration
-APP_NAME=MyApp                     # Your application name
-SERVER_PORT=3000                   # Port number for the server
-
-# API Configuration
-API_PREFIX=/api/v1                 # API route prefix
-
-# Rate Limiting Configuration
-RATE_LIMIT_WINDOW_MS=300000   # Time window for rate limiting in milliseconds (5 minutes)
-RATE_LIMIT_MAX=100           # Maximum number of requests within the time window
-
-# Database Configuration
-DB_DIALECT=postgres                # Database type (postgres, mysql, etc.)
-DB_HOST=localhost                  # Database host address
-DB_PORT=5432                      # Database port number
-DB_USERNAME=postgres              # Database username
-DB_PASSWORD=postgres123           # Database password
-DB_NAME=my_database              # Database name
-DB_LOGGING=false                 # Enable/disable database query logging
-DB_SYNC=true                     # Enable/disable database synchronization
-DB_POOL_MAX=10                   # Maximum number of connections in pool
-DB_POOL_MIN=2                    # Minimum number of connections in pool
-DB_POOL_ACQUIRE=60000           # Maximum time (ms) to acquire connection
-DB_POOL_IDLE=20000             # Maximum time (ms) connection can be idle
-
-# Redis Configuration
-REDIS_HOST=localhost            # Redis server host address
-REDIS_PORT=6379                # Redis server port
-REDIS_USERNAME=default         # Redis username
-REDIS_PASSWORD=redis123        # Redis password
-REDIS_CONNECTION_TYPE=single   # Redis connection type (single/cluster)
-
-# RabbitMQ Configuration
-RABBITMQ_HOST=localhost        # RabbitMQ server host address
-RABBITMQ_PORT=5672            # RabbitMQ server port
-RABBITMQ_USER=admin           # RabbitMQ username
-RABBITMQ_PASSWORD=admin123    # RabbitMQ password
-
-```
-
-## Run Tests
-
-To run the tests, use the following command:
-
-```bash
-npm run test
-```
-
-To run tests in watch mode:
-
-```bash
-npm run test:watch
-```
-
-To run end-to-end tests:
-
-```bash
-npm run test:e2e
-```
-
-To run test coverage:
-
-```bash
-npm run test:cov
-```
+- **GET** `http://localhost:8080/api/v1/health-check` - Checks the health status of the API.
+- **GET** `http://localhost:8080/api/v1/tasks` - Fetches all tasks.
+- **GET** `http://localhost:8080/api/v1/tasks/{id}` - Fetches details of a specific task by ID.
+- **POST** `http://localhost:8080/api/v1/tasks` - Creates a new task.
+- **PUT** `http://localhost:8080/api/v1/tasks/{id}` - Updates an existing task.
+- **DELETE** `http://localhost:8080/api/v1/tasks/{id}` - Deletes a specific task by ID.
 
 ## Folder Structure
 
