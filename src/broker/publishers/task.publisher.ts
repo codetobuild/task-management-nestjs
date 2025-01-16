@@ -1,7 +1,10 @@
-import { Injectable } from "@nestjs/common";
 import * as amqp from "amqplib";
 import { TaskNotificationMessage } from "../../common/interfaces/taskNotification.interface";
 import { RabbitMQConfigService } from "src/config";
+import { RabbitMQService } from "../rabbitmq.service";
+import { Inject, Injectable } from "@nestjs/common";
+import { WINSTON_MODULE_PROVIDER } from "nest-winston";
+import { Logger } from "winston";
 
 /**
  * TaskPublisher is responsible for publishing task-related messages to a RabbitMQ exchange.
@@ -9,11 +12,6 @@ import { RabbitMQConfigService } from "src/config";
  */
 @Injectable()
 export class TaskPublisher {
-  /**
-   * The RabbitMQ connection instance.
-   */
-  private connection: amqp.Connection;
-
   /**
    * The RabbitMQ channel instance.
    */
@@ -23,24 +21,25 @@ export class TaskPublisher {
    * Constructs a new TaskPublisher instance.
    * @param rabbitmqConfigService - The service providing RabbitMQ configuration.
    */
-  constructor(private readonly rabbitmqConfigService: RabbitMQConfigService) {}
+  constructor(
+    private readonly rabbitmqConfigService: RabbitMQConfigService,
+    private readonly rabbitmqService: RabbitMQService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
+
+  async connect() {
+    this.channel = await this.rabbitmqService.getChannel();
+    if (this.channel) {
+      await this.setup();
+    } else {
+      throw new Error("RabbitMQ channel is not initialized");
+    }
+  }
 
   /**
-   * Establishes a connection to RabbitMQ and creates a channel.
-   * Asserts the exchange defined in the configuration.
-   * @throws Will throw an error if the connection or channel creation fails.
+   * Sets up the exchange for publishing messages.
    */
-  async connect() {
-    this.connection = await amqp.connect({
-      hostname: this.rabbitmqConfigService.host,
-      port: this.rabbitmqConfigService.port,
-      username: this.rabbitmqConfigService.username,
-      password: this.rabbitmqConfigService.password,
-    });
-
-    this.channel = await this.connection.createChannel();
-
-    // Assert the exchange
+  async setup() {
     await this.channel.assertExchange(
       this.rabbitmqConfigService.taskConfig.EXCHANGE,
       this.rabbitmqConfigService.taskConfig.EXCHANGE_TYPE,
@@ -72,17 +71,8 @@ export class TaskPublisher {
       },
     );
 
-    console.log(
+    this.logger.info(
       `Message published: ${JSON.stringify(message)} with routingKey: ${routingKey}`,
     );
-  }
-
-  /**
-   * Closes the RabbitMQ channel and connection.
-   * @throws Will throw an error if the channel or connection closure fails.
-   */
-  async disconnect() {
-    await this.channel?.close();
-    await this.connection?.close();
   }
 }

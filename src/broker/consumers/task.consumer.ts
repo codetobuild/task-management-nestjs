@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
 import * as amqp from "amqplib";
 import { RabbitMQConfigService } from "src/config";
+import { RabbitMQService } from "../rabbitmq.service";
+import { Injectable } from "@nestjs/common";
 
 /**
  * TaskConsumer
@@ -11,38 +12,37 @@ import { RabbitMQConfigService } from "src/config";
  */
 @Injectable()
 export class TaskConsumer {
-  private connection: amqp.Connection;
   private channel: amqp.Channel;
 
-  constructor(private readonly rabbitmqConfigService: RabbitMQConfigService) {}
+  constructor(
+    private readonly rabbitmqConfigService: RabbitMQConfigService,
+    private readonly rabbitmqService: RabbitMQService,
+  ) {}
 
   /**
-   * Connect to RabbitMQ and set up the channel, exchange, and queues.
+   * Establishes a connection to RabbitMQ and creates a channel.
+   * Calls the setup method to assert the queues and bindings.
+   * @throws Will throw an error if the connection or channel creation fails.
    */
   async connect() {
-    this.connection = await amqp.connect({
-      hostname: this.rabbitmqConfigService.host,
-      port: this.rabbitmqConfigService.port,
-      username: this.rabbitmqConfigService.username,
-      password: this.rabbitmqConfigService.password,
-    });
+    this.channel = await this.rabbitmqService.getChannel();
+    if (this.channel) {
+      await this.setup();
+    } else {
+      throw new Error("RabbitMQ channel is not initialized");
+    }
+  }
 
-    this.channel = await this.connection.createChannel();
-
-    // Assert the exchange and queues
-    await this.channel.assertExchange(
-      this.rabbitmqConfigService.taskConfig.EXCHANGE,
-      this.rabbitmqConfigService.taskConfig.EXCHANGE_TYPE,
-      { durable: true },
-    );
-
+  /**
+   * Sets up the queues and bindings for consuming messages.
+   */
+  async setup() {
     for (const queue of Object.values(
       this.rabbitmqConfigService.taskConfig.QUEUES,
     )) {
       await this.channel.assertQueue(queue, { durable: true });
     }
 
-    // Bind queues to the exchange
     for (const [operation, queue] of Object.entries(
       this.rabbitmqConfigService.taskConfig.QUEUES,
     )) {
@@ -80,13 +80,5 @@ export class TaskConsumer {
         }
       });
     }
-  }
-
-  /**
-   * Disconnect from RabbitMQ by closing the channel and connection.
-   */
-  async disconnect() {
-    await this.channel?.close();
-    await this.connection?.close();
   }
 }

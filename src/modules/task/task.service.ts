@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
@@ -27,7 +28,13 @@ export class TaskService {
     private readonly taskPublisher: TaskPublisher,
     private readonly rabbitmqConfigService: RabbitMQConfigService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+  ) {
+    this.initialize();
+  }
+
+  private async initialize() {
+    await this.taskPublisher.connect();
+  }
 
   /**
    * Create a new task
@@ -49,11 +56,10 @@ export class TaskService {
         message,
         this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.CREATE,
       );
-      this.logger.info("Task created successfully");
+      this.logger.info("Task created successfully", { taskId: task.id });
       return task;
     } catch (err) {
-      console.error(err);
-      this.logger.error(err);
+      this.logger.error("Failed to create task", { error: err.message });
       await transaction.rollback();
       throw new BadRequestException({
         message: "Failed to create task",
@@ -76,9 +82,10 @@ export class TaskService {
       }
       const tasks = await Task.findAll();
       await this.redisService.set(cacheKey, tasks, CONSTANTS.REDIS_TASK_EXP_SS);
+      this.logger.info("Tasks retrieved from database");
       return tasks;
     } catch (err) {
-      console.error(err);
+      this.logger.error("Failed to fetch all tasks", { error: err.message });
       throw new BadRequestException("Failed to fetch all tasks");
     }
   }
@@ -90,12 +97,11 @@ export class TaskService {
    * @returns {Promise<Task>} A promise that resolves to the task with the specified ID.
    */
   async getTaskById(id: string): Promise<Task> {
-    const cachedTask = await this.redisService.get(`task:${id}`);
-    if (cachedTask) {
-      return cachedTask as Task;
-    }
-
     try {
+      const cachedTask = await this.redisService.get(`task:${id}`);
+      if (cachedTask) {
+        return cachedTask as Task;
+      }
       const task = await Task.findByPk(id);
       if (!task) {
         throw new NotFoundException("Task not found");
@@ -105,10 +111,13 @@ export class TaskService {
         task,
         CONSTANTS.REDIS_TASK_EXP_SS,
       );
+      this.logger.info("Task retrieved from database", { taskId: id });
       return task;
     } catch (err) {
-      console.error(err);
-      this.logger.error(err);
+      this.logger.error("Failed to fetch task by ID", {
+        error: err.message,
+        taskId: id,
+      });
       if (err instanceof NotFoundException) {
         throw err;
       }
@@ -147,10 +156,13 @@ export class TaskService {
         message,
         this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.UPDATE,
       );
-      this.logger.info(`Task updated successfully for task id: ${id}`);
+      this.logger.info("Task updated successfully", { taskId: id });
       return task;
     } catch (err) {
-      this.logger.error(err);
+      this.logger.error("Failed to update task", {
+        error: err.message,
+        taskId: id,
+      });
       await transaction.rollback();
       if (err instanceof BadRequestException) {
         throw err; // Re-throw specific exceptions to preserve context.
@@ -190,10 +202,13 @@ export class TaskService {
         message,
         this.rabbitmqConfigService.taskConfig.ROUTING_KEYS.DELETE,
       );
-      this.logger.info(`Task deleted successfully for id ${task.id}`);
+      this.logger.info("Task deleted successfully", { taskId: id });
       return "Task deleted successfully";
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error("Failed to delete task", {
+        error: error.message,
+        taskId: id,
+      });
       await transaction.rollback();
 
       if (error instanceof BadRequestException) {
@@ -222,7 +237,10 @@ export class TaskService {
       );
 
       await transaction.commit();
-      return "Tasks created successfully";
+      this.logger.info("Bulk tasks created successfully", {
+        totalTasks: tasks.length,
+      });
+      return "Bulk tasks created successfully";
     } catch (error) {
       this.logger.error(error);
       await transaction.rollback();
