@@ -2,7 +2,7 @@ import { utilities as nestWinstonModuleUtilities } from "nest-winston";
 import "winston-daily-rotate-file";
 import * as path from "path";
 import * as winston from "winston";
-import { LOGS_DIRECTORY } from "../common/constants";
+import { CONSTANTS } from "../common/constants";
 
 /**
  * Winston Logger Configuration
@@ -27,7 +27,7 @@ export const winstonLoggerConfig = {
 
     // Rotating File Transport for Info logs
     new winston.transports.DailyRotateFile({
-      filename: path.join(LOGS_DIRECTORY, "application-%DATE%.log"),
+      filename: path.join(CONSTANTS.LOGS_DIRECTORY, "application-%DATE%.log"),
       datePattern: "YYYY-MM-DD",
       zippedArchive: true,
       maxSize: "20m",
@@ -41,7 +41,7 @@ export const winstonLoggerConfig = {
 
     // Rotating File Transport for Error logs
     new winston.transports.DailyRotateFile({
-      filename: path.join(LOGS_DIRECTORY, "error-%DATE%.log"),
+      filename: path.join(CONSTANTS.LOGS_DIRECTORY, "error-%DATE%.log"),
       datePattern: "YYYY-MM-DD",
       zippedArchive: true,
       maxSize: "20m",

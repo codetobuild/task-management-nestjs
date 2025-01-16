@@ -1,1 +1,1 @@
-export * from "./common.constant";
+export { CONSTANTS } from "./common.constant";

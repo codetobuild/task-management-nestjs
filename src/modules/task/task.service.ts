@@ -6,7 +6,8 @@ import {
 } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Sequelize } from "sequelize-typescript";
-import { TaskPublisher } from "src/broker/publishers/task.publisher";
+import { TaskPublisher } from "src/broker/publishers";
+import { CONSTANTS } from "src/common/constants";
 import { CreateTaskDto } from "src/common/dtos/createTask.dto";
 import { UpdateTaskDto } from "src/common/dtos/update-task.dto";
 import { TaskOperationType } from "src/common/enums";
@@ -66,15 +67,18 @@ export class TaskService {
    * @returns {Promise<Task[]>} A promise that resolves to an array of tasks.
    */
   async getAllTasks(): Promise<Task[]> {
-    const transaction = await this.sequelize.transaction();
+    const cacheKey = "all_tasks";
 
     try {
-      const tasks = await Task.findAll({ transaction });
-      await transaction.commit();
+      const cachedTasks = await this.redisService.get<Task[]>(cacheKey);
+      if (cachedTasks) {
+        return cachedTasks;
+      }
+      const tasks = await Task.findAll();
+      await this.redisService.set(cacheKey, tasks, CONSTANTS.REDIS_TASK_EXP_SS);
       return tasks;
     } catch (err) {
       console.error(err);
-      await transaction.rollback();
       throw new BadRequestException("Failed to fetch all tasks");
     }
   }
@@ -96,7 +100,11 @@ export class TaskService {
       if (!task) {
         throw new NotFoundException("Task not found");
       }
-      await this.redisService.set(`task:${task.id}`, task, 60);
+      await this.redisService.set(
+        `task:${task.id}`,
+        task,
+        CONSTANTS.REDIS_TASK_EXP_SS,
+      );
       return task;
     } catch (err) {
       console.error(err);

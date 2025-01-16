@@ -1,3 +1,5 @@
-export const TEST_CONSTANT_VALUE = "TEST_CONSTANT_VALUE";
-
-export const LOGS_DIRECTORY = "logs";
+export const CONSTANTS = Object.freeze({
+  TEST_CONSTANT_VALUE: "TEST_CONSTANT_VALUE",
+  LOGS_DIRECTORY: "logs",
+  REDIS_TASK_EXP_SS: 30,
+});
