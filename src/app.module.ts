@@ -53,6 +53,5 @@ export class AppModule {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     logger.info("NODE ENVIRONMENT : " + process.env.NODE_ENV);
-    console.log("NODE ENVIRONMENT : " + process.env.NODE_ENV);
   }
 }

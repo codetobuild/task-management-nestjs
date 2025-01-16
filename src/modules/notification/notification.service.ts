@@ -1,5 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { TaskConsumer } from "src/broker/consumers";
+import { Logger } from "winston";
 
 /**
  * Service responsible for handling notifications related to tasks.
@@ -10,7 +12,10 @@ export class NotificationService {
    * Constructs a new instance of the NotificationService.
    * @param taskConsumer - The consumer responsible for handling task messages.
    */
-  constructor(private readonly taskConsumer: TaskConsumer) {
+  constructor(
+    private readonly taskConsumer: TaskConsumer,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {
     this.initialize();
   }
 
@@ -29,8 +34,7 @@ export class NotificationService {
    */
   async getTaskNotification() {
     await this.taskConsumer.consumeMessages((message: any) => {
-      console.log("############# consumer message content ##############");
-      console.log(message);
+      this.logger.info(message, { service: "NotificationService" });
     });
   }
 }

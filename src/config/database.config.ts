@@ -36,6 +36,15 @@ export class DatabaseConfigService {
     return this.configService.get<string>("DB_NAME", "task_management_db");
   }
 
+  get dbSync(): boolean {
+    if (
+      this.configService.get<string>("DB_SYNC") === "true" &&
+      this.configService.get<string>("NODE_ENV") === "environment"
+    ) {
+      return true;
+    }
+  }
+
   get logging(): boolean | ((msg: string) => void) {
     return this.configService.get<string>("DB_LOGGING") === "true"
       ? console.log

@@ -35,7 +35,10 @@ export const databaseProviders = [
       };
 
       const sequelize = new Sequelize(sequelizeOptions);
-      await sequelize.sync();
+      if (databaseConfigService.dbSync) {
+        console.log("Database syncing...");
+        await sequelize.sync();
+      }
       await sequelize.authenticate();
       return sequelize;
     },

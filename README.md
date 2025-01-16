@@ -44,6 +44,7 @@ Here is a list of features available in the current project:
 
    - Winston logger integration.
    - Rotating file logs for application and error logs.
+   - Request Response time logging
 
 7. **API Rate Limiting**
 
@@ -192,6 +193,7 @@ DB_USERNAME=postgres              # Database username
 DB_PASSWORD=postgres123           # Database password
 DB_NAME=my_database              # Database name
 DB_LOGGING=false                 # Enable/disable database query logging
+DB_SYNC=true                     # Enable/disable database synchronization
 DB_POOL_MAX=10                   # Maximum number of connections in pool
 DB_POOL_MIN=2                    # Minimum number of connections in pool
 DB_POOL_ACQUIRE=60000           # Maximum time (ms) to acquire connection

@@ -5,25 +5,14 @@ const apps = [
     script: "dist/main.js", // Path to your compiled NestJS application
 
     // Memory Management
-    instances: -1,
+    instances: "2", // Use 50% of the available CPUs
     exec_mode: "cluster",
     node_args: "--max-old-space-size=338", // Limits Node.js heap size to 338MB
     max_memory_restart: "423M", // Restarts app if memory exceeds 423MB
 
     // Process Arguments & Watch Settings
     args: ["--color"], // Enables colored output in logs
-    watch: true, // Enables file watching for auto-restart
-    ignore_watch: [
-      // Files/directories to ignore when watching
-      ".git",
-      "tests",
-      "pids",
-      "logs",
-      "node_modules",
-      "*.log",
-      ".git/*",
-      "public",
-    ],
+    watch: false, // Disables file watching for auto-restart
 
     // Logging Configuration
     merge_logs: true, // Merges child process logs into parent
@@ -34,7 +23,7 @@ const apps = [
     // Restart Behavior
     min_uptime: "30s", // Minimum uptime to consider app "started"
     max_restarts: 30, // Maximum number of restarts before stop
-    restart_delay: 2000, // Delay between restarts (1 second)
+    restart_delay: 2000, // Delay between restarts (2 seconds)
 
     // Environment Variables
     env_production: {
