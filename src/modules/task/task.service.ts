@@ -15,7 +15,6 @@ import { TaskOperationType } from "src/common/enums";
 import { TaskNotificationMessage } from "src/common/interfaces/taskNotification.interface";
 import { TaskHelper } from "src/common/utils/task.helper";
 import { RabbitMQConfigService } from "src/config";
-import { MYSQL_DATABASE_CONNECTION } from "src/database/database.providers";
 import { Task } from "src/database/models/task.model";
 import { RedisService } from "src/redis/redis.service";
 import { Logger } from "winston";
@@ -23,7 +22,7 @@ import { Logger } from "winston";
 @Injectable()
 export class TaskService {
   constructor(
-    @Inject(MYSQL_DATABASE_CONNECTION) private sequelize: Sequelize,
+    private sequelize: Sequelize,
     private readonly redisService: RedisService,
     private readonly taskPublisher: TaskPublisher,
     private readonly rabbitmqConfigService: RabbitMQConfigService,
